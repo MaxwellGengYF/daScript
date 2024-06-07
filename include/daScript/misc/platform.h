@@ -48,6 +48,9 @@
 
 #include <assert.h>
 #include <string.h>
+#if defined(_MSC_VER)
+#include <mimalloc.h>
+#endif
 
 #ifdef _MSC_VER
 #include <intsafe.h>
@@ -298,7 +301,8 @@ void os_debug_break();
 #define DAS_ALIGNED_ALLOC 1
 inline void *das_aligned_alloc16(size_t size) {
 #if defined(_MSC_VER)
-    return _aligned_malloc(size, 16);
+    return mi_malloc(size);
+    // return _aligned_malloc(size, 16);
 #else
     void * mem = nullptr;
     if (posix_memalign(&mem, 16, size)) {
@@ -310,7 +314,8 @@ inline void *das_aligned_alloc16(size_t size) {
 }
 inline void das_aligned_free16(void *ptr) {
 #if defined(_MSC_VER)
-    _aligned_free(ptr);
+    mi_free(ptr);
+    // _aligned_free(ptr);
 #else
     free(ptr);
 #endif
@@ -322,7 +327,8 @@ inline void das_aligned_free16(void *ptr) {
 #endif
 inline size_t das_aligned_memsize(void * ptr){
 #if defined(_MSC_VER)
-    return _aligned_msize(ptr, 16, 0);
+    return mi_malloc_size(ptr);
+    // return _aligned_msize(ptr, 16, 0);
 #elif defined(__APPLE__)
     return malloc_size(ptr);
 #else

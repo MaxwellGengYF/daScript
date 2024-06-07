@@ -1,6 +1,3 @@
-class DasClass{
-    x : int[65536];
-}
 // Sort all
 def sort(var arr : float[]; arr_size : int; compare : function<(a : float; b : float) : bool>){
     _sort(arr, 0, arr_size - 1, compare);

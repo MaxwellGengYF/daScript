@@ -1,7 +1,25 @@
 #include "daScript/daScript.h"
+#include "builtin/module_builtin_rtti.h"
 #include <iostream>
 using namespace das;
 void require_project_specific_modules();
+void addObject(const void* pClass) {
+	auto type_info = *reinterpret_cast<TypeInfo* const*>(reinterpret_cast<std::byte const*>(pClass) - 16);
+	std::cout << (size_t)type_info << '\n';
+}
+
+class Mod : public Module {
+public:
+	Mod() : Module("test_mod") {
+		ModuleLibrary lib(this);
+		lib.addBuiltInModule();
+		addBuiltinDependency(lib, Module::require("rtti"));// we add RTTI to ModuleLibrary so that we can bind addObject
+		addExtern<DAS_BIND_FUN(addObject)>(
+			*this, lib, "add_object",
+			SideEffects::modifyExternal, "addObject");
+	}
+};
+REGISTER_MODULE(Mod);
 
 void tutorial(char const* name) {
 	TextPrinter tout;						  // output stream for all compiler messages (stdout. for stringstream use TextWriter)
@@ -14,6 +32,7 @@ void tutorial(char const* name) {
 	policies.fail_on_no_aot = true;
 #endif
 	policies.fail_on_lack_of_aot_export = false;
+	policies.rtti = true;
 	// compile program
 	auto program = compileDaScript(name, fAccess, tout, dummyLibGroup, policies);
 	if (program->failed()) {
@@ -48,13 +67,11 @@ void tutorial(char const* name) {
 	}
 	// evaluate 'main' function in the context
 	// das is really fast!
-	auto be = clock();
-	for (size_t i = 0; i < 100000; ++i) {
-		ctx.restartHeaps();
-		ctx.evalWithCatch(fnMain, nullptr);
-	}
-	auto ed = clock();
-	tout << ((double)(ed - be) / 1e3) << " second\n";
+	// auto be = clock();
+	ctx.restartHeaps();
+	ctx.evalWithCatch(fnMain, nullptr);
+	// auto ed = clock();
+	// tout << ((double)(ed - be) / 1e3) << " second\n";
 	if (auto ex = ctx.getException()) {// if function cased panic, report it
 		tout << "exception: " << ex << "\n";
 		return;
@@ -67,6 +84,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	NEED_ALL_DEFAULT_MODULES;
+	NEED_MODULE(Mod);
 	require_project_specific_modules();
 	// Initialize modules
 	Module::Initialize();

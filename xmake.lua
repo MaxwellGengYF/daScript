@@ -43,7 +43,7 @@ _config_project({
     enable_exception = true,
     -- no_rtti = false
 })
-add_includedirs('include', 'xxHash', {
+add_includedirs('include', 'src', 'xxHash', {
     public = true
 })
 add_cxflags("/bigobj", {
@@ -85,8 +85,9 @@ add_deps('daScript_lib')
 if DAS_ENABLE_AOT then
     add_deps('my_test_codegen')
     add_defines("DAS_ENABLE_AOT")
+    add_files('my_test/*.das')
 end
 set_policy("build.across_targets_in_parallel", false)
-add_files('my_test/*.das', 'my_test/*.cpp')
+add_files('my_test/*.cpp')
 set_pcxxheader('my_test/pch.h')
 target_end()
