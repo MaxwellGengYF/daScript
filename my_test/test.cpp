@@ -9,8 +9,10 @@ void tutorial(char const* name) {
 	auto fAccess = make_smart<FsFileAccess>();// default file access
 	CodeOfPolicies policies{};				  // default policies
 // policies.persistent_heap = true;                // enable persistent heap for GC purposes
+#if DAS_ENABLE_AOT
 	policies.aot = true;
 	policies.fail_on_no_aot = true;
+#endif
 	policies.fail_on_lack_of_aot_export = false;
 	// compile program
 	auto program = compileDaScript(name, fAccess, tout, dummyLibGroup, policies);
@@ -45,7 +47,14 @@ void tutorial(char const* name) {
 		return;
 	}
 	// evaluate 'main' function in the context
-	ctx.evalWithCatch(fnMain, nullptr);
+	// das is really fast!
+	auto be = clock();
+	for (size_t i = 0; i < 100000; ++i) {
+		ctx.restartHeaps();
+		ctx.evalWithCatch(fnMain, nullptr);
+	}
+	auto ed = clock();
+	tout << ((double)(ed - be) / 1e3) << " second\n";
 	if (auto ex = ctx.getException()) {// if function cased panic, report it
 		tout << "exception: " << ex << "\n";
 		return;
@@ -58,7 +67,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	NEED_ALL_DEFAULT_MODULES;
-    require_project_specific_modules();
+	require_project_specific_modules();
 	// Initialize modules
 	Module::Initialize();
 	// run the tutorial
