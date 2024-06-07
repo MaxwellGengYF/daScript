@@ -4225,7 +4225,7 @@ namespace das {
             if ( expr->type && expr->initializer && !expr->name.empty() ) {
                 auto resultType = expr->type;
                 expr->func = inferFunctionCall(expr).get();
-                swap ( resultType, expr->type );
+                std::swap ( resultType, expr->type );
                 if ( expr->func ) {
                     if ( !expr->type->firstType->isSameType(*resultType, RefMatters::yes, ConstMatters::yes, TemporaryMatters::yes) ) {
                         error("initializer returns " + describeType(resultType) + " vs "
@@ -6866,7 +6866,7 @@ namespace das {
             if ( candidates.size()==1 ) {
                 return 0;
             }
-            sort(ranked.begin(), ranked.end(), [](const pair<Function *,int> & a, const pair<Function *,int> & b) {
+            das::sort(ranked.begin(), ranked.end(), [](const pair<Function *,int> & a, const pair<Function *,int> & b) {
                 return a.second < b.second;
             });
             // if there is one or more 'one-off's' - we only leave them
@@ -7349,7 +7349,7 @@ namespace das {
                 auto dist = computeSubstituteDistance(arguments, fn);
                 fnm.push_back(make_pair(dist,fn));
             }
-            sort ( fnm.begin(), fnm.end(), [&] ( auto a, auto b ) {
+            das::sort ( fnm.begin(), fnm.end(), [&] ( auto a, auto b ) {
                 return a.first < b.first;
             });
             int count = 1;

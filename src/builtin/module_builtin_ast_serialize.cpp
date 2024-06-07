@@ -278,7 +278,7 @@ namespace das {
 
     template <typename K, typename V>
     AstSerializer & AstSerializer::operator << ( das_hash_map<K, V> & value ) {
-        serialize_hash_map<K, V, hash<K>, equal_to<K>>(value);
+        serialize_hash_map<K, V, das_hash<K>, equal_to<K>>(value);
         return *this;
     }
 

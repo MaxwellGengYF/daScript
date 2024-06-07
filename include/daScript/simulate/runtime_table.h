@@ -212,7 +212,7 @@ namespace das
                 uint32_t oldSize = tab.capacity*(valueTypeSize + sizeof(KeyType) + sizeof(TableHashKey));
                 context->free(tab.data, oldSize);
             }
-            swap ( newTab, tab );
+            std::swap ( newTab, tab );
             return true;
         }
     };

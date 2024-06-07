@@ -211,11 +211,3 @@ namespace das
     __forceinline bool operator != ( uint32_t f, const Bitfield & t ) { return t.value!=f; }
 
 }
-
-namespace std {
-    template <> struct hash<das::Bitfield> {
-        std::size_t operator() ( das::Bitfield b ) const {
-            return hash<uint32_t>()(b.value);
-        }
-    };
-}

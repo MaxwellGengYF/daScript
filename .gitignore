@@ -6,13 +6,17 @@ tmtags
 
 *.output
 *.temp
+*.bat
+*.cmd
 **/_aot_generated
 
 build/
 bin/
 .vscode/
 .cache/
+.xmake/
 temp/
+das_out/
 
 
 test.bin

@@ -1,6 +1,7 @@
 #pragma once
 
-#include "daScript/misc/wyhash.h"
+// #include "daScript/misc/wyhash.h"
+#include <xxhash.h>
 
 /*
     this is where we configure low level hash implementation
@@ -17,8 +18,7 @@
 namespace das {
 
     static __forceinline uint64_t hash_block64 ( const uint8_t * block, size_t size ) {
-        auto h = wyhash(block, size, DAS_WYHASH_SEED);
-        return h <= HASH_KILLED64 ? 1099511628211ul : h;
+        return hash64(block, size, hash64_default_seed);
     }
 
     static NO_ASAN_INLINE uint64_t hash_blockz64 ( const uint8_t * block ) {
@@ -45,32 +45,30 @@ namespace das {
     }
 
     static __forceinline uint64_t hash_uint32 ( uint32_t value ) {  // this is simplified, and not the same as wyhash(&value,4)
-        auto h = _wymix(uint64_t(value), DAS_WYHASH_SEED);
-        return h <= HASH_KILLED64 ? 1099511628211ul : h;
+        return hash64(&value, sizeof(value), hash64_default_seed);
     }
 
     static __forceinline uint64_t hash_uint64 ( uint64_t value ) { // this is simplified, and not the same as wyhash(&value,4)
-        auto h = _wymix(value, DAS_WYHASH_SEED);
-        return h <= HASH_KILLED64 ? 1099511628211ul : h;
+        return hash64(&value, sizeof(value), hash64_default_seed);
     }
 
     class HashBuilder {
-        uint64_t seed = DAS_WYHASH_SEED;
+        uint64_t seed = hash64_default_seed;
     public:
         uint64_t getHash() {
             return seed <= HASH_KILLED64 ? 1099511628211ul : seed;
         }
         __forceinline void updateString ( const char * str ) {
             if (!str) str = "";
-            seed = wyhash((const uint8_t *)str, strlen(str), seed);
+            seed = hash64((const uint8_t *)str, strlen(str), seed);
         }
         __forceinline void updateString ( const char * str, size_t len) {
             if (!str) str = "";
-            seed = wyhash((const uint8_t *)str, len, seed);
+            seed = hash64((const uint8_t *)str, len, seed);
         }
         template <typename TT>
         __forceinline void update ( TT & data ) {
-            seed = wyhash((const uint8_t *)&data, sizeof(data), seed);
+            seed = hash64((const uint8_t *)&data, sizeof(data), seed);
         }
     };
 }

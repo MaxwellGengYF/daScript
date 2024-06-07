@@ -421,7 +421,7 @@ namespace das {
             DAS_FATAL_ERROR("can't add function %s to module %s; it has no side effects and no return type\n", mangledName.c_str(), name.c_str() );
         }
         if ( fn->builtIn ) {
-            cumulativeHash = wyhash(mangledName.c_str(), mangledName.size(), cumulativeHash);
+            cumulativeHash = hash64(mangledName.c_str(), mangledName.size(), cumulativeHash);
         }
         if ( fn->builtIn && fn->sideEffectFlags==uint32_t(SideEffects::modifyArgument)  ) {
             bool anyRW = false;
@@ -558,7 +558,7 @@ namespace das {
             // macros
             auto ptm = program->thisModule.get();
             if ( ptm->macroContext ) {
-                swap ( macroContext, ptm->macroContext );
+                std::swap ( macroContext, ptm->macroContext );
                 ptm->handleTypes.foreach([&](auto fna){
                     addAnnotation(fna);
                 });

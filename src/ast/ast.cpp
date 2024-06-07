@@ -33,7 +33,9 @@ namespace das {
     // AOT
 
     AotListBase * AotListBase::head = nullptr;
-
+    AotListBase::AotListBase(AotListBase &&) = default;
+    AotListBase::AotListBase(AotListBase const&) = default;
+    AotListBase::~AotListBase() = default;
     AotListBase::AotListBase( RegisterAotFunctions prfn ) {
         tail = head;
         head = this;

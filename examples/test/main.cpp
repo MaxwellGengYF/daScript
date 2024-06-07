@@ -321,7 +321,6 @@ bool isolated_unit_test ( const string & fn, bool useAot, bool useSer ) {
     NEED_MODULE(Module_Math);
     NEED_MODULE(Module_Raster);
     NEED_MODULE(Module_Strings);
-    NEED_MODULE(Module_UnitTest);
     NEED_MODULE(Module_Rtti);
     NEED_MODULE(Module_Ast);
     NEED_MODULE(Module_Debugger);
@@ -447,7 +446,6 @@ int main( int argc, char * argv[] ) {
     NEED_MODULE(Module_Math);
     NEED_MODULE(Module_Raster);
     NEED_MODULE(Module_Strings);
-    NEED_MODULE(Module_UnitTest);
     NEED_MODULE(Module_Rtti);
     NEED_MODULE(Module_Ast);
     NEED_MODULE(Module_Debugger);

@@ -140,7 +140,6 @@ namespace das {
                     info.fileName = getDasRoot() + "/modules/" + #dir_name + "/" + #subdir_name + "/" + #das_name + ".das"; \
                     return info; \
                 }
-            #include "modules/external_resolve.inc"
             #undef NATIVE_MODULE
             auto ert = extraRoots.find(top);
             if ( ert!=extraRoots.end() ) {

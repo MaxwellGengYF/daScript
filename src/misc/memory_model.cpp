@@ -4,7 +4,12 @@
 #include "daScript/misc/debug_break.h"
 
 namespace das {
-
+void* das_malloc(size_t size){
+  return eastl::GetDefaultAllocator()->allocate(size);
+}
+void das_free(void* ptr) {
+  return eastl::GetDefaultAllocator()->deallocate(ptr, 0);
+}
 #if DAS_TRACK_ALLOCATIONS
     uint64_t    g_tracker = 0;
     uint64_t    g_breakpoint= -1ul;

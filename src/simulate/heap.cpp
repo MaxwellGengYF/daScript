@@ -159,13 +159,13 @@ namespace das {
         needIntern = on;
         if ( !needIntern ) {
             das_string_set empty;
-            swap ( internMap, empty );
+            std::swap ( internMap, empty );
         }
     }
 
     void StringHeapAllocator::reset() {
         das_string_set empty;
-        swap ( internMap, empty );
+        std::swap ( internMap, empty );
     }
 
     char * StringHeapAllocator::intern(const char * str, uint32_t length) const {
@@ -195,7 +195,7 @@ namespace das {
     void ConstStringAllocator::reset () {
         LinearChunkAllocator::reset();
         das_string_set dummy;
-        swap(internMap, dummy);
+        std::swap(internMap, dummy);
     }
 
     char * ConstStringAllocator::impl_allocateString ( const char * text, uint32_t length ) {
@@ -281,7 +281,7 @@ namespace das {
         model.sweep();
         if ( needIntern ) {
             das_string_set empty;
-            swap ( internMap, empty );
+            std::swap ( internMap, empty );
             forEachString([&](const char * str){
                 uint32_t length = uint32_t(strlen(str));
                 internMap.insert(StrHashEntry(str,length));
