@@ -55,12 +55,21 @@ set_pcxxheader('src/pch.h')
 add_defines('DAS_INSTALL_BINDIR="build"', 'DAS_INSTALL_DATADIR="build"', 'DAS_COMPILE_EXPORT')
 target_end()
 
+target('daScript_modules')
+_config_project({
+    project_kind = 'static',
+    enable_exception = true,
+})
+add_files('modules/d5_next/**.cpp')
+add_deps('daScript_lib')
+target_end()
+
 target('daScript')
 _config_project({
     project_kind = 'binary',
     enable_exception = true,
 })
-add_deps('daScript_lib')
+add_deps('daScript_modules')
 add_files('utils/daScript/main.cpp')
 target_end()
 
@@ -81,7 +90,7 @@ _config_project({
     enable_exception = true,
 })
 add_rules('compile_das')
-add_deps('daScript_lib')
+add_deps('daScript_modules')
 if DAS_ENABLE_AOT then
     add_deps('my_test_codegen')
     add_defines("DAS_ENABLE_AOT")

@@ -1,8 +1,8 @@
 // Sort all
-def sort(var arr : float[]; arr_size : int; compare : function<(a : float; b : float) : bool>){
+def sort(var arr : float[]; arr_size : int; compare : lambda<(a : float; b : float) : bool>){
     _sort(arr, 0, arr_size - 1, compare);
 }
-def _sort(var a : float[]; lo : int; hi : int; compare : function<(a : float; b : float) : bool>){
+def _sort(var a : float[]; lo : int; hi : int; compare : lambda<(a : float; b : float) : bool>){
     if (lo >= hi){
         return ;
     }
@@ -11,10 +11,7 @@ def _sort(var a : float[]; lo : int; hi : int; compare : function<(a : float; b 
     _sort(a, j + 1, hi, compare);
 }
 
-def compare_float(a : float; b : float) {
-    return a < b;
-}
-def _partition(var a : float[]; lo : int; hi : int; compare : function<(a : float; b : float) : bool>){
+def _partition(var a : float[]; lo : int; hi : int; compare : lambda<(a : float; b : float) : bool>){
     var i = lo;
     var j = hi + 1;
     var v = a[lo];
@@ -71,5 +68,13 @@ def main(){
                  0.14490724230889862; 0.8091091037661762; 0.33811012061539847; 0.9483255339473119; 0.45149044189107623;
                  0.20033069205909781; 0.3511276966534437; 0.9073932490105007; 0.35397798650479007; 0.07863705236160501;
                  0.97269368907587]];
-    sort(arr, int(length(arr)), @@compare_float);
+
+    sort(arr, int(length(arr)), @(a : float; b : float){
+        return a < b;
+    });
+    for i in arr; {
+        print(string(i));
+        print(" ");
+    }
+    print("\n");
 }
