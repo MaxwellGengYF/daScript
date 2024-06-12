@@ -1,25 +1,13 @@
 #include "daScript/daScript.h"
 #include "builtin/module_builtin_rtti.h"
 #include <iostream>
+#include "serde.h"
 using namespace das;
 void require_project_specific_modules();
 void addObject(const void* pClass) {
 	auto type_info = *reinterpret_cast<TypeInfo* const*>(reinterpret_cast<std::byte const*>(pClass) - 16);
 	std::cout << (size_t)type_info << '\n';
 }
-
-class Mod : public Module {
-public:
-	Mod() : Module("test_mod") {
-		ModuleLibrary lib(this);
-		lib.addBuiltInModule();
-		addBuiltinDependency(lib, Module::require("rtti"));// we add RTTI to ModuleLibrary so that we can bind addObject
-		addExtern<DAS_BIND_FUN(addObject)>(
-			*this, lib, "add_object",
-			SideEffects::modifyExternal, "addObject");
-	}
-};
-REGISTER_MODULE(Mod);
 
 void tutorial(char const* name) {
 	TextPrinter tout;						  // output stream for all compiler messages (stdout. for stringstream use TextWriter)
@@ -70,6 +58,10 @@ void tutorial(char const* name) {
 	// auto be = clock();
 	ctx.restartHeaps();
 	ctx.evalWithCatch(fnMain, nullptr);
+	for (auto& i : Module_Serde::lambdas) {
+		tout << "executing " << i.first << '\n';
+		das_invoke_lambda<void>::invoke(&ctx, nullptr, i.second);
+	}
 	// auto ed = clock();
 	// tout << ((double)(ed - be) / 1e3) << " second\n";
 	if (auto ex = ctx.getException()) {// if function cased panic, report it
@@ -84,7 +76,6 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	NEED_ALL_DEFAULT_MODULES;
-	NEED_MODULE(Mod);
 	require_project_specific_modules();
 	// Initialize modules
 	Module::Initialize();

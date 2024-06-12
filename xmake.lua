@@ -25,7 +25,7 @@ includes('xmake/xmake_func.lua')
 includes('EASTL')
 target('uriparser')
 _config_project({
-    project_kind = 'static'
+    project_kind = 'object'
 })
 add_files('3rdparty/uriparser/src/*.c')
 add_defines('URI_NO_UNICODE', 'URI_STATIC_BUILD', {
@@ -40,7 +40,7 @@ target_end()
 target('daScript_lib')
 _config_project({
     project_kind = 'static',
-    enable_exception = true,
+    enable_exception = true
     -- no_rtti = false
 })
 add_includedirs('include', 'src', 'xxHash', {
@@ -52,22 +52,22 @@ add_cxflags("/bigobj", {
 add_deps('uriparser', 'eastl')
 add_files('src/**.cpp', 'xxHash/xxhash.c')
 set_pcxxheader('src/pch.h')
-add_defines('DAS_INSTALL_BINDIR="build"', 'DAS_INSTALL_DATADIR="build"', 'DAS_COMPILE_EXPORT')
 target_end()
 
 target('daScript_modules')
 _config_project({
     project_kind = 'static',
-    enable_exception = true,
 })
 add_files('modules/d5_next/**.cpp')
+add_includedirs('modules/d5_next', {
+    public = true
+})
 add_deps('daScript_lib')
 target_end()
 
 target('daScript')
 _config_project({
     project_kind = 'binary',
-    enable_exception = true,
 })
 add_deps('daScript_modules')
 add_files('utils/daScript/main.cpp')
@@ -87,7 +87,6 @@ end
 target('my_test_compile')
 _config_project({
     project_kind = 'binary',
-    enable_exception = true,
 })
 add_rules('compile_das')
 add_deps('daScript_modules')

@@ -567,9 +567,9 @@ namespace das {
                 } else {
                     g_dasRoot = get_prefix(ep);     // remove bin
                 }
-                if ( ep == DAS_INSTALL_BINDIR ) {
-                    g_dasRoot = DAS_INSTALL_DATADIR;
-                }
+                // if ( ep == DAS_INSTALL_BINDIR ) {
+                //     g_dasRoot = DAS_INSTALL_DATADIR;
+                // }
             } else {
                 g_dasRoot = ".";
             }
