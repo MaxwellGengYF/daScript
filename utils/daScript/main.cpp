@@ -1,6 +1,7 @@
 #include "daScript/daScript.h"
 #include "daScript/simulate/fs_file_info.h"
 #include <filesystem>
+#include <string_view>
 using namespace das;
 
 void use_utf8();
@@ -29,34 +30,6 @@ das::Context* get_context(int stackSize = 0);
 bool saveToFile(const string& fname, const string& str) {
 	if (!quiet) {
 		tout << "saving to " << fname << "\n";
-	}
-	// Test old file
-	{
-		FILE* file = fopen(fname.c_str(), "rb");
-		if (file) {
-			LUISA_FSEEK(file, 0, SEEK_END);
-			auto length = LUISA_FTELL(file);
-			LUISA_FSEEK(file, 0, SEEK_SET);
-			if (length == str.size()) {
-				constexpr size_t block_size = 65536;
-				void* ptr = malloc(std::min<size_t>(length, block_size));
-				bool is_same = true;
-				for (size_t i = 0; i < length; i += block_size) {
-					auto compare_size = std::min<size_t>(length - i, block_size);
-					fread(ptr, compare_size, 1, file);
-					is_same &= memcmp(ptr, str.data() + i, compare_size) == 0;
-					if (!is_same) {
-						break;
-					}
-				}
-				free(ptr);
-				if (is_same) {
-					fclose(file);
-					return true;
-				}
-			}
-			fclose(file);
-		}
 	}
 	FILE* f = fopen(fname.c_str(), "wb");
 	if (!f) {
@@ -251,6 +224,150 @@ bool compileStandalone(const string& fn, const string& cppFn, bool /*dryRun*/, c
 		tout << "failed to compile\n";
 		return false;
 	}
+}
+int das_depend_main(int argc, char* argv[]) {
+	if (argc != 4) {
+		tout << "daScript -depend <in_script.das> <out.lua>\n";
+		return -1;
+	}
+	das::string in_script = argv[2];
+	das::string out_lua = argv[3];
+	if (!Module::require("$")) {
+		NEED_MODULE(Module_BuiltIn);
+	}
+	if (!Module::require("math")) {
+		NEED_MODULE(Module_Math);
+	}
+	if (!Module::require("raster")) {
+		NEED_MODULE(Module_Raster);
+	}
+	if (!Module::require("strings")) {
+		NEED_MODULE(Module_Strings);
+	}
+	if (!Module::require("rtti")) {
+		NEED_MODULE(Module_Rtti);
+	}
+	if (!Module::require("ast")) {
+		NEED_MODULE(Module_Ast);
+	}
+	if (!Module::require("jit")) {
+		NEED_MODULE(Module_Jit);
+	}
+	if (!Module::require("debugapi")) {
+		NEED_MODULE(Module_Debugger);
+	}
+	if (!Module::require("network")) {
+		NEED_MODULE(Module_Network);
+	}
+	if (!Module::require("uriparser")) {
+		NEED_MODULE(Module_UriParser);
+	}
+	if (!Module::require("jobque")) {
+		NEED_MODULE(Module_JobQue);
+	}
+	if (!Module::require("fio")) {
+		NEED_MODULE(Module_FIO);
+	}
+	if (!Module::require("dasbind")) {
+		NEED_MODULE(Module_DASBIND);
+	}
+	require_project_specific_modules();
+	Module::Initialize();
+	das::vector<char> vec;
+	auto push = [&](std::string_view strv) {
+		auto idx = vec.size();
+		vec.resize(vec.size() + strv.size());
+		memcpy(vec.data() + idx, strv.data(), strv.size());
+		return idx;
+	};
+	vec.reserve(2048);
+
+	using namespace std::string_view_literals;
+	{
+		std::string_view header = "function get()return{"sv;
+		push(header);
+	}
+	auto add_file = [&](das::string const& file_name) {
+		vec.push_back('"');
+		auto idx = push(file_name);
+		for (auto ptr = vec.data() + idx; ptr != vec.data() + vec.size(); ++ptr) {
+			if ((*ptr) == '\\') {
+				(*ptr) = '/';
+			}
+		}
+		push("\","sv);
+	};
+	{
+		auto access = get_file_access((char*)(projectFile.empty() ? nullptr : projectFile.c_str()));
+		vector<ModuleInfo> req;
+		vector<string> missing, circular, notAllowed;
+		das_set<string> dependencies;
+		ModuleGroup libGroup;
+		add_file(in_script);
+		if (getPrerequisits(
+				in_script, access, req, missing, circular, notAllowed,
+				dependencies, libGroup, nullptr, 1, true)) {
+			for (auto& m : req) {
+				add_file(m.fileName);
+			}
+		} else {
+			for (auto& mis : missing) {
+				tout << "missing prerequisit " << mis << "\n";
+			}
+			for (auto& mis : circular) {
+				tout << "circular dependency " << mis << "\n";
+			}
+			for (auto& mis : notAllowed) {
+				tout << "module not allowed " << mis << "\n";
+			}
+			return -1;
+		}
+	}
+	push("}end");
+	{
+		auto f = fopen(out_lua.c_str(), "rb");
+		if (f) {
+			fseek(f, 0, SEEK_END);
+			auto length = ftell(f);
+			fseek(f, 0, SEEK_SET);
+			if (length == vec.size()) {
+				constexpr size_t block_size = 65536;
+				void* ptr = malloc(std::min<size_t>(length, block_size));
+				bool is_same = true;
+				for (size_t i = 0; i < length; i += block_size) {
+					auto compare_size = std::min<size_t>(length - i, block_size);
+					fread(ptr, compare_size, 1, f);
+					is_same &= memcmp(ptr, vec.data() + i, compare_size) == 0;
+					if (!is_same) {
+						break;
+					}
+				}
+				free(ptr);
+				if (is_same) {
+					fclose(f);
+					return 0;
+				}
+			}
+			fclose(f);
+		}
+	}
+	{
+		std::filesystem::path outPath{out_lua};
+		std::filesystem::path outPathParent = outPath.parent_path();
+		if (!std::filesystem::exists(outPathParent)) {
+			std::error_code ec;
+			std::filesystem::create_directories(outPathParent, ec);
+		}
+		auto f = fopen(out_lua.c_str(), "wb");
+		if (!f) {
+			tout << "Can not open " << out_lua << "\n";
+			return -1;
+		}
+		fwrite(vec.data(), vec.size(), 1, f);
+		fclose(f);
+	}
+	Module::Shutdown();
+	return 0;
 }
 
 int das_aot_main(int argc, char* argv[]) {
@@ -473,10 +590,7 @@ int MAIN_FUNC_NAME(int argc, char* argv[]) {
 	// 	[](void* ptr) { mi_free(ptr); },
 	// 	[](void* ptr, size_t size) { return mi_realloc(ptr, size); });
 	auto exe_dir = std::filesystem::weakly_canonical(executable_path()).parent_path();
-	auto das_root_dir = exe_dir / "das_root_dir.txt";
-	std::cout << "Start compile\n"
-			  << das_root_dir.string() << "\n";
-	auto name = das_root_dir.string();
+	auto name = (exe_dir / "das_root_dir.txt").string();
 	auto f = fopen(name.c_str(), "rb");
 	if (f) {
 		fseek(f, 0, SEEK_END);
@@ -499,6 +613,9 @@ int MAIN_FUNC_NAME(int argc, char* argv[]) {
 		return -1;
 	}
 	setCommandLineArguments(argc, argv);
+	if (argc >= 2 && strcmp(argv[1], "-depend") == 0) {
+		return das_depend_main(argc, argv);
+	}
 	das::vector<string> files;
 	string mainName = "main";
 	bool scriptArgs = false;

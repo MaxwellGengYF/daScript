@@ -1,7 +1,7 @@
 enable_mimalloc = true;
 target("eastl")
 _config_project({
-    project_kind = "static",
+    project_kind = "object",
     batch_size = 64,
     no_rtti = true
 })

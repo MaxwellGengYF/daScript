@@ -139,42 +139,42 @@ end
 
 
 -- generate *.das to *.cpp
-rule("codegen_das")
-set_extensions(".das")
-on_config(function(target)
-    local lib = import('lib')
+rule('compile_das')
+set_extensions('.das')
+on_clean(function(target)
     local das_lib = import('das')
     local dir = das_lib.get_outdir()
-    lib.mkdirs(dir)
+    if os.exists(dir) then
+        os.rm(dir)
+    end
+end)
+before_build_file(function (target, sourcefile, opt)
+    local das_lib = import('das')
+    local out_dirs = das_lib.get_out_filepath(sourcefile)
+    -- analyze depend
+    os.vrunv(path.join(target:targetdir(), 'daScript'), {"-depend", sourcefile, path.join(out_dirs[1], out_dirs[2] .. ".lua")})
 end)
 on_buildcmd_file(function(target, batchcmds, sourcefile, opt)
-    local lib = import("lib")
-    local das_lib = import("das")
-    -- local out_file = das_lib.get_out_filepath_create(sourcefile, lib)
-    local out_file = das_lib.get_out_filepath(sourcefile)
-    local sb = lib.StringBuilder()
-    sb:add(path.join(target:targetdir(), "daScript")):add(' -aot '):add(sourcefile):add(' '):add(out_file)
-    local cmd = sb:to_string()
-    batchcmds:vrunv(cmd)
-    batchcmds:show("generating " .. sourcefile)
-    -- batchcmds:add_depfiles(sourcefile)
-    sb:dispose()
-end)
-rule_end()
-
--- compile *.cpp generated from 'codegen_das'
-rule("compile_das")
-set_extensions(".das")
-on_buildcmd_file(function(target, batchcmds, sourcefile, opt)
-    local lib = import("lib")
-    local das_lib = import("das")
-    local out_file = das_lib.get_out_filepath(sourcefile)
+    local das_lib = import('das')
+    local out_dirs = das_lib.get_out_filepath(sourcefile)
+    local out_file = path.join(out_dirs[1], out_dirs[2] .. ".cpp")
+    -- fetch depend
+    local deps_lib = import(out_dirs[2], {
+        rootdir = out_dirs[1]
+    })
+    local deps_tb = deps_lib.get()
+    batchcmds:show('compiling ' .. sourcefile)
+    batchcmds:vrunv(path.join(target:targetdir(), 'daScript'), {'-aot', sourcefile, out_file})
+    -- Compile
     local objectfile = target:objectfile(out_file)
     table.insert(target:objectfiles(), objectfile)
-    batchcmds:show("compiling " .. sourcefile)
+    for _, v in ipairs(deps_tb) do
+        batchcmds:add_depfiles(v)
+    end
     batchcmds:add_depfiles(out_file)
     batchcmds:set_depmtime(os.mtime(objectfile))
     batchcmds:set_depcache(target:dependfile(objectfile))
     batchcmds:compile(out_file, objectfile)
+
 end)
 rule_end()

@@ -73,29 +73,17 @@ add_deps('daScript_modules')
 add_files('utils/daScript/main.cpp')
 target_end()
 
-DAS_ENABLE_AOT = get_config('das_aot')
-if DAS_ENABLE_AOT then
-    target('my_test_codegen')
-    set_kind("object")
-    add_rules('codegen_das')
-    set_policy("build.across_targets_in_parallel", false)
-    add_files('my_test/*.das')
-    add_deps('daScript', {public = false, inherit = false})
-    target_end()
-end
 
-target('my_test_compile')
+target('my_test')
 _config_project({
     project_kind = 'binary',
 })
 add_rules('compile_das')
 add_deps('daScript_modules')
-if DAS_ENABLE_AOT then
-    add_deps('my_test_codegen', {public = false})
+if get_config('das_aot') then
     add_defines("DAS_ENABLE_AOT")
     add_files('my_test/*.das')
 end
-set_policy("build.across_targets_in_parallel", false)
 add_files('my_test/*.cpp')
 set_pcxxheader('my_test/pch.h')
 target_end()

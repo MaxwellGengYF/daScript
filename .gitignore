@@ -12,7 +12,7 @@ tmtags
 
 build/
 bin/
-.vscode/
+.vscode/**
 .cache/
 .xmake/
 temp/
@@ -54,3 +54,4 @@ examples/rast2d/SPRITES/
 examples/rast2d/WALLS/
 examples/rast2d/PICTURES/
 yzg.code-workspace
+!.vscode/settings.json
