@@ -601,8 +601,6 @@ int MAIN_FUNC_NAME(int argc, char* argv[]) {
 		fread(str.data(), length, 1, f);
 		fclose(f);
 		setDasRoot(std::filesystem::weakly_canonical(str).string());
-	} else {
-		setDasRoot(std::filesystem::weakly_canonical(exe_dir / "../../../../modules/daScript").string());
 	}
 	if (argc > 2 && strcmp(argv[1], "-aot") == 0) {
 		return das_aot_main(argc, argv);
