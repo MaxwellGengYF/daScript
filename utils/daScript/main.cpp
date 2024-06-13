@@ -4,7 +4,7 @@
 using namespace das;
 
 void use_utf8();
-
+std::string executable_path();
 void require_project_specific_modules();	  //link time resolved dependencies
 das::FileAccessPtr get_file_access(char* pak);//link time resolved dependencies
 
@@ -44,7 +44,7 @@ bool saveToFile(const string& fname, const string& str) {
 				for (size_t i = 0; i < length; i += block_size) {
 					auto compare_size = std::min<size_t>(length - i, block_size);
 					fread(ptr, compare_size, 1, file);
-					is_same &= memcmp(ptr, str.data(), compare_size) == 0;
+					is_same &= memcmp(ptr, str.data() + i, compare_size) == 0;
 					if (!is_same) {
 						break;
 					}
@@ -465,6 +465,31 @@ void print_help() {
 #endif
 
 int MAIN_FUNC_NAME(int argc, char* argv[]) {
+	// eastl::allocator::set_custom_malloc(
+	// 	[](size_t size) {
+	// 	return mi_malloc(size);
+	// },
+	// 	[](size_t align, size_t size) { return mi_malloc_aligned(size, align); },
+	// 	[](void* ptr) { mi_free(ptr); },
+	// 	[](void* ptr, size_t size) { return mi_realloc(ptr, size); });
+	auto exe_dir = std::filesystem::weakly_canonical(executable_path()).parent_path();
+	auto das_root_dir = exe_dir / "das_root_dir.txt";
+	std::cout << "Start compile\n"
+			  << das_root_dir.string() << "\n";
+	auto name = das_root_dir.string();
+	auto f = fopen(name.c_str(), "rb");
+	if (f) {
+		fseek(f, 0, SEEK_END);
+		auto length = ftell(f);
+		fseek(f, 0, SEEK_SET);
+		std::string str;
+		str.resize(length);
+		fread(str.data(), length, 1, f);
+		fclose(f);
+		setDasRoot(std::filesystem::weakly_canonical(str).string());
+	} else {
+		setDasRoot(std::filesystem::weakly_canonical(exe_dir / "../../../../modules/daScript").string());
+	}
 	if (argc > 2 && strcmp(argv[1], "-aot") == 0) {
 		return das_aot_main(argc, argv);
 	}
@@ -639,6 +664,14 @@ int MAIN_FUNC_NAME(int argc, char* argv[]) {
 #if defined(_WIN32)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+std::string executable_path() {
+	std::string str;
+	str.resize(MAX_PATH);
+	GetModuleFileNameA(NULL, str.data(), MAX_PATH);
+	str.resize(strlen(str.c_str()));
+	return str;
+}
+
 #endif
 
 void use_utf8() {

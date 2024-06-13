@@ -80,7 +80,7 @@ if DAS_ENABLE_AOT then
     add_rules('codegen_das')
     set_policy("build.across_targets_in_parallel", false)
     add_files('my_test/*.das')
-    add_deps('daScript')
+    add_deps('daScript', {public = false, inherit = false})
     target_end()
 end
 
@@ -91,7 +91,7 @@ _config_project({
 add_rules('compile_das')
 add_deps('daScript_modules')
 if DAS_ENABLE_AOT then
-    add_deps('my_test_codegen')
+    add_deps('my_test_codegen', {public = false})
     add_defines("DAS_ENABLE_AOT")
     add_files('my_test/*.das')
 end
