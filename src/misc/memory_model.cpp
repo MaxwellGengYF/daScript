@@ -5,10 +5,10 @@
 
 namespace das {
 void* das_malloc(size_t size){
-  return das_aligned_alloc16(size);
+  return eastl::GetDefaultAllocator()->allocate(size);
 }
 void das_free(void* ptr) {
-  return das_aligned_free16(ptr);
+  return eastl::GetDefaultAllocator()->deallocate(ptr, 0);
 }
 #if DAS_TRACK_ALLOCATIONS
     uint64_t    g_tracker = 0;

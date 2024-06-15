@@ -58,97 +58,96 @@ struct eastl_allocator {
 		return std::is_same_v<T, R>;
 	}
 };
+using eastl::enable_shared_from_this;
+using eastl::function;
+using eastl::make_shared;
+using eastl::make_unique;
+using eastl::shared_ptr;
+using eastl::unique_ptr;
+using eastl::vector;
 using std::addressof;
 using std::allocator;
 using std::allocator_traits;
+using std::atomic;
 using std::ceil;
+using std::condition_variable;
+using std::copy;
+using std::declval;
 using std::equal_to;
+using std::false_type;
+using std::find;
+using std::find_if;
 using std::forward;
 using std::forward_iterator_tag;
-using std::hash;
+using std::index_sequence;
+using std::is_abstract;
+using std::is_arithmetic;
 using std::is_base_of;
 using std::is_base_of_v;
+using std::is_const;
+using std::is_const_v;
+using std::is_default_constructible;
+using std::is_destructible;
+using std::is_enum;
+using std::is_pointer;
+using std::is_pointer_v;
+using std::is_reference;
 using std::is_same;
 using std::is_same_v;
+using std::is_standard_layout;
+using std::is_trivial;
+using std::is_trivially_constructible;
+using std::is_trivially_copy_constructible;
+using std::is_trivially_copyable;
+using std::is_trivially_destructible;
+using std::is_void;
 using std::less;
+using std::lock_guard;
+using std::make_index_sequence;
+using std::make_pair;
+using std::make_tuple;
 using std::max;
 using std::min;
 using std::move;
 using std::mutex;
 using std::next;
 using std::pair;
-using std::tuple;
-using std::remove_cv_t;
-using std::remove_cv;
-using std::remove_const;
-using std::is_enum;
-using std::index_sequence;
-using std::reverse;
-using std::to_string;
-using std::make_pair;
-using std::make_tuple;
-using std::make_index_sequence;
-using std::is_pointer;
-using std::is_pointer_v;
 using std::ptrdiff_t;
-using std::string;
-using std::remove_reference_t;
-using std::true_type;
-using std::false_type;
-using std::is_const_v;
-using std::is_const;
-using std::find;
-using std::is_void;
-using std::lock_guard;
 using std::recursive_mutex;
-using std::wstring;
-using std::string;
-using std::is_arithmetic;
-using std::find_if;
-using std::atomic;
-using std::declval;
-using std::underlying_type;
+using std::remove_const;
+using std::remove_cv;
+using std::remove_cv_t;
+using std::remove_reference_t;
+using std::reverse;
 using std::stable_sort;
-using std::is_abstract;
-using std::is_trivial;
-using std::is_standard_layout;
-using std::is_trivially_copy_constructible;
-using std::is_trivially_copyable;
-using std::is_trivially_destructible;
-using std::is_trivially_constructible;
-using std::is_destructible;
-using std::is_default_constructible;
-using std::is_reference;
-using std::thread;
+using std::hash;
+using std::string;
 using std::stringstream;
-using std::condition_variable;
-using std::copy;
+using std::thread;
+using std::to_string;
+using std::true_type;
+using std::tuple;
+using std::underlying_type;
 using std::unique_lock;
-using eastl::shared_ptr;
-using eastl::make_shared;
-using eastl::unique_ptr;
-using eastl::make_unique;
-using eastl::vector;
-using eastl::function;
-using eastl::enable_shared_from_this;
+using std::wstring;
 
 template<pdqsort_detail::LinearIterable Iter, pdqsort_detail::CompareFunc<Iter> Compare>
-inline void sort(Iter begin, Iter end, Compare comp){
+inline void sort(Iter begin, Iter end, Compare comp) {
 	pdqsort(begin, end, comp);
 }
 template<pdqsort_detail::LinearIterable Iter>
-inline void sort(Iter begin, Iter end){
+inline void sort(Iter begin, Iter end) {
 	pdqsort(begin, end);
 }
 
-namespace chrono{
+namespace chrono {
 using std::chrono::milliseconds;
+}// namespace chrono
+namespace this_thread {
+inline void yield() {
+	std::this_thread::yield();
 }
-namespace this_thread{
-  inline void yield(){
-    std::this_thread::yield();
-  }
-}
+}// namespace this_thread
 
 }// namespace das
 
@@ -183,6 +182,12 @@ struct das_hash<T> {
 	using is_avalaunching = void;
 	[[nodiscard]] constexpr uint64_t operator()(const T& value) const noexcept {
 		return value.hash();
+	}
+};
+template<>
+struct das_hash<uint64_t> {
+	[[nodiscard]] constexpr uint64_t operator()(uint64_t value) const noexcept {
+		return value;
 	}
 };
 template<typename Char, typename CharTraits>
