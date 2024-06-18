@@ -1272,7 +1272,7 @@ namespace das
     TypeDeclPtr makePrintFlags() {
         auto ft = make_smart<TypeDecl>(Type::tBitfield);
         ft->alias = "print_flags";
-        ft->argNames = { "escapeString", "namesAndDimensions", "typeQualifiers", "refAddresses", "humanReadable", "singleLine" };
+        ft->argNames = { "escapeString", "namesAndDimensions", "typeQualifiers", "refAddresses", "humanReadable", "singleLine", "fixedPoint" };
         return ft;
     }
 
@@ -1423,7 +1423,7 @@ namespace das
             emscripten_cancel_main_loop();
         }
     }
-#endif TRY_MAIN_LOOP
+#endif
 #endif
 
     void builtin_main_loop ( const TBlock<bool> & block, Context * context, LineInfoArg * at ) {

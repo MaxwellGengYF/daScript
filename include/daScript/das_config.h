@@ -151,6 +151,8 @@ inline void yield() {
 
 }// namespace das
 
+#include <fmt/core.h>
+
 #if DAS_SKA_HASH
 #ifdef _MSC_VER
 #pragma warning(disable : 4503)// decorated name length exceeded, name was truncated
