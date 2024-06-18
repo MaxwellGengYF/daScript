@@ -2459,7 +2459,7 @@ namespace das {
             if (expr->func) {
                 auto mangledName = expr->func->getMangledName();
                 uint64_t hash = expr->func->getMangledNameHash();
-                ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "u))";
+                ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "ull))";
             } else {
                 ss << "Func(0 /*nullptr*/)";
             }
@@ -2696,7 +2696,7 @@ namespace das {
                             auto mangledName = call_func->getMangledName();
                             uint64_t hash = call_func->getMangledNameHash();
                             ss << "(__context__,nullptr,";
-                            ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "u))";
+                            ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "ull))";
                             ss << ");\n";
                         } else {
                             ss << aotFuncName(call_func) << "(__context__);\n";
@@ -3146,10 +3146,10 @@ namespace das {
                             }
                         }
                         ss << ">(__context__,nullptr,";
-                        ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "u)),";
+                        ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "ull)),";
                     } else {
                         ss << "(__context__,nullptr,";
-                        ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "u))";
+                        ss << "Func(__context__->fnByMangledName(/*" << mangledName << "*/ " << hash << "ull))";
                     }
                 } else {
                     ss << aotFuncName(call->func) << "(__context__";

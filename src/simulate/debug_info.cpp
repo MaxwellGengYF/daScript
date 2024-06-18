@@ -65,19 +65,6 @@ namespace das
         return Module::resolveAnnotation(this);
     }
 
-    StructInfo * TypeInfo::getStructType() const {
-        if ( type != Type::tStructure ) {
-            return nullptr;
-        }
-        return structType;
-    }
-    EnumInfo * TypeInfo::getEnumType() const {
-        if ( type != Type::tEnumeration && type != Type::tEnumeration8 && type != Type::tEnumeration16 ) {
-            return nullptr;
-        }
-        return enumType;
-    }
-
     void TypeInfo::resolveAnnotation() const {
         if ( daScriptEnvironment::bound->modules ) Module::resolveAnnotation(this);
     }
