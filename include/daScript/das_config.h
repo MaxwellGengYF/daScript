@@ -117,6 +117,7 @@ using std::recursive_mutex;
 using std::remove_const;
 using std::remove_cv;
 using std::remove_cv_t;
+using std::remove_reference;
 using std::remove_reference_t;
 using std::reverse;
 using std::stable_sort;

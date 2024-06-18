@@ -21,8 +21,7 @@ if (os.projectdir() == os.scriptdir()) then
     end
 end
 
-includes('xmake/xmake_func.lua')
-includes('EASTL')
+includes('xmake/xmake_func.lua', 'EASTL', '3rdparty/fmt')
 target('uriparser')
 _config_project({
     project_kind = 'object'
@@ -49,7 +48,7 @@ add_includedirs('include', 'src', 'xxHash', {
 add_cxflags("/bigobj", {
     tools = {"cl"}
 })
-add_deps('uriparser', 'eastl')
+add_deps('uriparser', 'eastl', 'das_fmt')
 add_files('src/**.cpp', 'xxHash/xxhash.c')
 set_pcxxheader('src/pch.h')
 target_end()

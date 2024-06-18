@@ -1,5 +1,5 @@
 {
-  "xmake.additionalConfigArguments": ["--das_aot=true"],
+  "xmake.additionalConfigArguments": ["--toolchain=llvm"],
   "C_Cpp.codeAnalysis.runAutomatically": false,
   "C_Cpp.intelliSenseEngine": "disabled",
   "C_Cpp.formatting": "disabled",

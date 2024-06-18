@@ -910,9 +910,9 @@ class fixed_buffer_traits {
   size_t limit_;
 
  public:
-  explicit fixed_buffer_traits(size_t limit) : limit_(limit) {}
-  auto count() const -> size_t { return count_; }
-  auto limit(size_t size) -> size_t {
+  inline explicit fixed_buffer_traits(size_t limit) : limit_(limit) {}
+  inline auto count() const -> size_t { return count_; }
+  inline auto limit(size_t size) -> size_t {
     size_t n = limit_ > count_ ? limit_ - count_ : 0;
     count_ += size;
     return size < n ? size : n;
