@@ -118,6 +118,15 @@ namespace das
         }
     };
 
+    FunctionPtr Function::setDeprecated(const string & message) {
+        deprecated = true; // this is instead of apply above
+        AnnotationDeclarationPtr decl = make_smart<AnnotationDeclaration>();
+        decl->arguments.push_back(AnnotationArgument("message",message));
+        decl->annotation = make_smart<DeprecatedFunctionAnnotation>();
+        annotations.push_back(decl);
+        return this;
+    }
+
     struct NeverAliasCMRESFunctionAnnotation : MarkFunctionAnnotation {
         NeverAliasCMRESFunctionAnnotation() : MarkFunctionAnnotation("never_alias_cmres") { }
         virtual bool apply(const FunctionPtr & func, ModuleGroup &, const AnnotationArgumentList &, string &) override {
@@ -1272,7 +1281,7 @@ namespace das
     TypeDeclPtr makePrintFlags() {
         auto ft = make_smart<TypeDecl>(Type::tBitfield);
         ft->alias = "print_flags";
-        ft->argNames = { "escapeString", "namesAndDimensions", "typeQualifiers", "refAddresses", "humanReadable", "singleLine", "fixedPoint" };
+        ft->argNames = { "escapeString", "namesAndDimensions", "typeQualifiers", "refAddresses", "singleLine", "fixedPoint" };
         return ft;
     }
 
