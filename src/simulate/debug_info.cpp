@@ -7,6 +7,7 @@
 #include "daScript/misc/arraytype.h"
 #include "daScript/misc/vectypes.h"
 #include "daScript/misc/rangetype.h"
+#include "daScript/misc/sysos.h"
 
 namespace das
 {
@@ -793,6 +794,15 @@ namespace das
     }
 
     string FileAccess::getIncludeFileName ( const string & fileName, const string & incFileName ) const {
+        auto first_pos = incFileName.find_first_of("\\/");
+        if(first_pos != string::npos){
+            std::string_view first_dir_name{incFileName.data(), first_pos};
+            if(first_dir_name == "DASROOT"){
+                auto path = getDasRoot();
+                return path + std::string{incFileName.data() + first_pos, incFileName.size() - first_pos};
+            }
+        }
+
         auto np = fileName.find_last_of("\\/");
         if ( np != string::npos ) {
             return fileName.substr(0,np+1) + incFileName;
