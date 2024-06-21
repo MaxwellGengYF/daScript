@@ -20,12 +20,7 @@ namespace das {
 
     typedef void ( * RegisterAotFunctions ) ( AotLibrary & );
 
-    template <typename Func>
-    void trySetAotLib(AotLibrary& aotLib, uint64_t hash, Func&& func){
-        if(!aotLib.try_emplace(hash, std::forward<Func>(func)).second){
-            std::cerr << "Hash collided, try set aot lib failed.\n";
-        }
-    }
+    void trySetAotLib(AotLibrary& aotLib, uint64_t hash, AotFactory&& func);
 
     struct AotListBase {
         AotListBase( RegisterAotFunctions prfn );

@@ -798,7 +798,8 @@ namespace das
         if(first_pos != string::npos){
             std::string_view first_dir_name{incFileName.data(), first_pos};
             if(first_dir_name == "DASROOT"){
-                auto path = getDasRoot();
+                // TODO: @Maxwell hard code here, very bad, any better idea?
+                auto path = getDasRoot() + "/scripts";
                 return path + std::string{incFileName.data() + first_pos, incFileName.size() - first_pos};
             }
         }

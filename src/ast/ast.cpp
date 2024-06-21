@@ -53,7 +53,11 @@ namespace das {
     // aot library
 
     DAS_THREAD_LOCAL unique_ptr<AotLibrary> g_AOT_lib;
-
+    void trySetAotLib(AotLibrary& aotLib, uint64_t hash, AotFactory&& func){
+        if(!aotLib.try_emplace(hash, std::move(func)).second){
+            std::cerr << "Hash collided, try set aot lib failed.\n";
+        }
+    }
     AotLibrary & getGlobalAotLibrary() {
         if ( !g_AOT_lib ) {
             g_AOT_lib = make_unique<AotLibrary>();
