@@ -155,6 +155,7 @@ before_build_file(function (target, sourcefile, opt)
     os.vrunv(path.join(target:targetdir(), 'daScript'), {"-depend", sourcefile, path.join(out_dirs[1], out_dirs[2] .. ".lua")})
 end)
 on_buildcmd_file(function(target, batchcmds, sourcefile, opt)
+    local pch_settings = target:extraconf("rules", "compile_das", "pch")
     local das_lib = import('das')
     local out_dirs = das_lib.get_out_filepath(sourcefile)
     local out_file = path.join(out_dirs[1], out_dirs[2] .. ".cpp")
@@ -164,13 +165,20 @@ on_buildcmd_file(function(target, batchcmds, sourcefile, opt)
     })
     local deps_tb = deps_lib.get()
     batchcmds:show('compiling ' .. sourcefile)
-    batchcmds:vrunv(path.join(target:targetdir(), 'daScript'), {'-aot', sourcefile, out_file})
+    local project = import("core.project.project")
+    local compiler = project.target("daScript"):targetfile()
+
+    batchcmds:vrunv(compiler, {'-aot', sourcefile, out_file})
     -- Compile
     local objectfile = target:objectfile(out_file)
     table.insert(target:objectfiles(), objectfile)
     for _, v in ipairs(deps_tb) do
         batchcmds:add_depfiles(v)
     end
+    if pch_settings then
+        batchcmds:add_depfiles(pch_settings)
+    end
+    batchcmds:add_depfiles(compiler)
     batchcmds:add_depfiles(out_file)
     batchcmds:set_depmtime(os.mtime(objectfile))
     batchcmds:set_depcache(target:dependfile(objectfile))
