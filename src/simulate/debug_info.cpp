@@ -800,7 +800,7 @@ namespace das
             if(first_dir_name == "DASROOT"){
                 // TODO: @Maxwell hard code here, very bad, any better idea?
                 auto path = getDasRoot() + "/scripts";
-                return path + std::string{incFileName.data() + first_pos, incFileName.size() - first_pos};
+                return path + string{incFileName.data() + first_pos, incFileName.size() - first_pos};
             }
         }
 

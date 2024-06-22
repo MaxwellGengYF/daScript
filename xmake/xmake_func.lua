@@ -178,8 +178,7 @@ on_buildcmd_file(function(target, batchcmds, sourcefile, opt)
     if pch_settings then
         batchcmds:add_depfiles(pch_settings)
     end
-    batchcmds:add_depfiles(compiler)
-    batchcmds:add_depfiles(out_file)
+    batchcmds:add_depfiles(compiler, out_file)
     batchcmds:set_depmtime(os.mtime(objectfile))
     batchcmds:set_depcache(target:dependfile(objectfile))
     batchcmds:compile(out_file, objectfile)

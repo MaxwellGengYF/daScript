@@ -600,7 +600,7 @@ int MAIN_FUNC_NAME(int argc, char* argv[]) {
 		str.resize(length);
 		fread(str.data(), length, 1, f);
 		fclose(f);
-		setDasRoot(std::filesystem::weakly_canonical(str).string());
+		setDasRoot(das::to_string(std::filesystem::weakly_canonical(str)));
 	}
 	if (argc > 2 && strcmp(argv[1], "-aot") == 0) {
 		return das_aot_main(argc, argv);

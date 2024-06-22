@@ -556,7 +556,7 @@ namespace das {
         if ( !program->thisModule->name.empty() )
             return true;
         program->error("Module " + mod.moduleName + " is not setup correctly for AOT",
-            "module " + mod.moduleName + " is required", "", LineInfo(),
+            "did you forget add 'module " + mod.moduleName +"' declaration in file?", "", LineInfo(),
                 CompilationError::module_does_not_have_a_name);
         return false;
     }

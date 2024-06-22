@@ -55,7 +55,7 @@ target_end()
 
 target('daScript_modules')
 _config_project({
-    project_kind = 'static',
+    project_kind = 'static'
 })
 add_files('modules/d5_next/**.cpp')
 add_includedirs('modules/d5_next', {
@@ -66,23 +66,37 @@ target_end()
 
 target('daScript')
 _config_project({
-    project_kind = 'binary',
+    project_kind = 'binary'
 })
 add_deps('daScript_modules')
 add_files('utils/daScript/main.cpp')
 target_end()
 
+if get_config('das_aot') then
+    target("my_test_object")
+    _config_project({
+        project_kind = 'object'
+    })
+    add_rules('compile_das')
+    add_deps("daScript", {
+        public = false,
+        inherit = false
+    })
+    add_deps('daScript_modules')
+    add_defines("DAS_ENABLE_AOT")
+    add_files('my_test/*.das')
+else
+    target("my_test_object")
+    set_kind("phony")
+    target_end()
+end
 
 target('my_test')
 _config_project({
-    project_kind = 'binary',
+    project_kind = 'binary'
 })
-add_rules('compile_das')
-add_deps('daScript_modules')
-if get_config('das_aot') then
-    add_defines("DAS_ENABLE_AOT")
-    add_files('my_test/*.das')
-end
+add_deps('my_test_object')
+
 add_files('my_test/*.cpp')
 set_pcxxheader('my_test/pch.h')
 target_end()
