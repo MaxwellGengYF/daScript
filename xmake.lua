@@ -38,8 +38,7 @@ target_end()
 
 target('daScript_lib')
 _config_project({
-    project_kind = 'static',
-    enable_exception = true
+    project_kind = 'static'
     -- no_rtti = false
 })
 add_includedirs('include', 'src', 'xxHash', {
@@ -77,6 +76,7 @@ if get_config('das_aot') then
     _config_project({
         project_kind = 'object'
     })
+    add_rules('c++.build')
     add_rules('compile_das')
     add_deps("daScript", {
         public = false,

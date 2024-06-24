@@ -107,14 +107,9 @@ namespace das {
             while ( head<tail && *fmt ) *head++ = *fmt++;
         }
         *head++ = '}'; *head = 0;
-        try {
-            auto result = fmt::format_to(buf, ffmt, value);
-            *result= 0;
-            return context->allocateString(buf, uint32_t(result-buf), at);
-        } catch (const std::exception & e) {
-            context->throw_error_at(at, "fmt error: %s", e.what());
-            return nullptr;
-        }
+        auto result = fmt::format_to(buf, ffmt, value);
+        *result= 0;
+        return context->allocateString(buf, uint32_t(result-buf), at);
     }
 
     template <typename TT>
@@ -135,13 +130,9 @@ namespace das {
             while ( head<tail && *fmt ) *head++ = *fmt++;
         }
         *head++ = '}'; *head = 0;
-        try {
-            auto result = fmt::format_to(buf, ffmt, value);
-            *result = 0;
-            writer.writeStr(buf, result - buf);
-        } catch ( const std::exception & e ) {
-            context->throw_error_at(at, "fmt error: %s", e.what());
-        }
+        auto result = fmt::format_to(buf, ffmt, value);
+        *result = 0;
+        writer.writeStr(buf, result - buf);
         return writer;
     }
 

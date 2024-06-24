@@ -54,7 +54,8 @@ namespace das {
         for ( auto & p : refs ) {
             auto it = objects.find(p.second);
             if ( it == objects.end() ) {
-                throw std::runtime_error{"ast serializer function ref not found"};
+                std::cerr << "ast serializer function ref not found\n";
+                std::abort();
             } else {
                 *p.first = it->second.get();
             }
@@ -70,8 +71,8 @@ namespace das {
         vsnprintf(err, 256, fmt, args);
 
         va_end(args);
-
-        throw std::runtime_error{err};
+        std::cerr << err << "\n";
+        std::abort();
     }
 
     #define SERIALIZER_VERIFYF(cond, ...) {                 \
@@ -2083,15 +2084,9 @@ namespace das {
                     continue;
                 }
 
-                try {
-                    auto deser = new Module();
-                    program->library.addModule(deser);
-                    ser << *deser;
-                } catch ( std::runtime_error & r ) {
-                    LOG(LogLevel::error) << r.what();
-                    program->failToCompile = true;
-                    return;
-                }
+                auto deser = new Module();
+                program->library.addModule(deser);
+                ser << *deser;
             }
 
             program->thisModule.reset(program->library.getModules().back());
@@ -2105,14 +2100,8 @@ namespace das {
 
     // Serializes the whole script as opposed to just one module
     bool AstSerializer::serializeScript ( ProgramPtr program ) noexcept {
-        try {
-            program->serialize(*this);
-            return true;
-        } catch ( std::runtime_error & r ) {
-            program->failToCompile = true;
-            LOG(LogLevel::error) << r.what();
-            return false;
-        }
+        program->serialize(*this);
+        return true;
     }
 
     // Used in daNetGame currently
