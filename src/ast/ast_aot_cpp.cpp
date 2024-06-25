@@ -467,7 +467,7 @@ namespace das {
     public:
         void writeDim ( TextWriter & ss, TypeInfo * info, const string & suffix = ""  ) const {
             if ( info->dimSize ) {
-                ss << "uint32_t " << typeInfoName(info) << "_dim" << suffix << "[" << info->dimSize << "] = { ";
+                ss << "static uint32_t " << typeInfoName(info) << "_dim" << suffix << "[" << info->dimSize << "] = { ";
                 for ( uint32_t i=0, is=info->dimSize; i!=is; ++i ) {
                     if ( i ) ss << ", ";
                     ss << info->dim[i];
@@ -477,7 +477,7 @@ namespace das {
         }
         void writeArgNames ( TextWriter & ss, TypeInfo * info, const string & suffix = "" ) const {
             if ( info->argCount && info->argNames ) {
-                ss << "const char * " << typeInfoName(info) << "_arg_names" << suffix << "[" << info->argCount << "] = { ";
+                ss << "static const char * " << typeInfoName(info) << "_arg_names" << suffix << "[" << info->argCount << "] = { ";
                 for ( uint32_t i=0, is=info->argCount; i!=is; ++i ) {
                     if ( i ) ss << ", ";
                     ss << "\"" << info->argNames[i] << "\"";
@@ -487,7 +487,7 @@ namespace das {
         }
         void writeArgTypes ( TextWriter & ss, TypeInfo * info, const string & suffix = ""  ) const {
             if ( info->argCount && info->argTypes ) {
-                ss << "TypeInfo * " << typeInfoName(info) << "_arg_types" << suffix << "[" << info->argCount << "] = { ";
+                ss << "static TypeInfo * " << typeInfoName(info) << "_arg_types" << suffix << "[" << info->argCount << "] = { ";
                 for ( uint32_t i=0, is=info->argCount; i!=is; ++i ) {
                     if ( i ) ss << ", ";
                     ss << "&" << typeInfoName(info->argTypes[i]);
@@ -516,19 +516,19 @@ namespace das {
             ss << "\n";
             for ( auto & ti : emn2e ) {
                 describeCppEnumInfoValues(ss, ti.second);
-                ss << "EnumInfo " << enumInfoName(ti.second) << " = { ";
+                ss << "static EnumInfo " << enumInfoName(ti.second) << " = { ";
                 describeCppEnumInfo(ss, ti.second);
                 ss << " };\n";
             }
             for ( auto & ti : smn2s ) {
                 describeCppStructInfoFields(ss, ti.second);
-                ss << "StructInfo " << structInfoName(ti.second) << " = {";
+                ss << "static StructInfo " << structInfoName(ti.second) << " = {";
                 describeCppStructInfo(ss, ti.second);
                 ss << " };\n";
             }
             for ( auto & ti : this->fmn2f ) {
                 describeCppFuncInfoFields(ss, ti.second);
-                ss << "FuncInfo " << funcInfoName(ti.second) << " = {";
+                ss << "static FuncInfo " << funcInfoName(ti.second) << " = {";
                 describeCppFuncInfo(ss, ti.second);
                 ss << " };\n";
             }
@@ -537,7 +537,7 @@ namespace das {
                 writeDim(ss, tinfo);
                 writeArgTypes(ss, tinfo);
                 writeArgNames(ss, tinfo);
-                ss << "TypeInfo " << typeInfoName(tinfo) << " = { ";
+                ss << "static TypeInfo " << typeInfoName(tinfo) << " = { ";
                 describeCppTypeInfo(ss, tinfo);
                 ss << " };\n";
             }
@@ -591,11 +591,11 @@ namespace das {
                 writeDim(ss, info->fields[fi], suffix);
                 writeArgTypes(ss, info->fields[fi], suffix);
                 writeArgNames(ss, info->fields[fi], suffix);
-                ss << "VarInfo " << structInfoName(info) << "_field_" << fi << " =  { ";
+                ss << "static VarInfo " << structInfoName(info) << "_field_" << fi << " =  { ";
                 describeCppVarInfo(ss, info->fields[fi],suffix);
                 ss << " };\n";
             }
-            ss << "VarInfo * " << structInfoName(info) << "_fields[" << info->count << "] =  { ";
+            ss << "static VarInfo * " << structInfoName(info) << "_fields[" << info->count << "] =  { ";
             for ( uint32_t fi=0, fis=info->count; fi!=fis; ++fi ) {
                 if ( fi ) ss << ", ";
                 ss << "&" << structInfoName(info) << "_field_" << fi;
@@ -623,11 +623,11 @@ namespace das {
                 writeDim(ss, info->fields[fi], suffix);
                 writeArgTypes(ss, info->fields[fi], suffix);
                 writeArgNames(ss, info->fields[fi], suffix);
-                ss << "VarInfo " << funcInfoName(info) << "_field_" << fi << " =  { ";
+                ss << "static VarInfo " << funcInfoName(info) << "_field_" << fi << " =  { ";
                 describeCppVarInfo(ss, info->fields[fi],suffix);
                 ss << " };\n";
             }
-            ss << "VarInfo * " << funcInfoName(info) << "_fields[" << info->count << "] =  { ";
+            ss << "static VarInfo * " << funcInfoName(info) << "_fields[" << info->count << "] =  { ";
             for ( uint32_t fi=0, fis=info->count; fi!=fis; ++fi ) {
                 if ( fi ) ss << ", ";
                 ss << "&" << funcInfoName(info) << "_field_" << fi;
@@ -653,10 +653,10 @@ namespace das {
         void describeCppEnumInfoValues ( TextWriter & ss, EnumInfo * einfo ) const {
             for ( uint32_t v=0, vs=einfo->count; v!=vs; ++v ) {
                 auto val = einfo->fields[v];
-                ss << "EnumValueInfo " << enumInfoName(einfo) << "_value_" << v << " = { \""
+                ss << "static EnumValueInfo " << enumInfoName(einfo) << "_value_" << v << " = { \""
                 << val->name << "\", " << val->value << " };\n";
             }
-            ss << "EnumValueInfo * " << enumInfoName(einfo) << "_values [] = { ";
+            ss << "static EnumValueInfo * " << enumInfoName(einfo) << "_values [] = { ";
             for ( uint32_t v=0, vs=einfo->count; v!=vs; ++v ) {
                 if ( v ) ss << ", ";
                 ss << "&" << enumInfoName(einfo) << "_value_" << v;
@@ -1094,7 +1094,7 @@ namespace das {
     // global let body
         virtual void preVisitGlobalLetBody ( Program * prog ) override {
             Visitor::preVisitGlobalLetBody(prog);
-            ss << "void __init_script ( Context * __context__, bool __init_shared )\n{\n";
+            ss << "static void __init_script ( Context * __context__, bool __init_shared )\n{\n";
             tab ++;
             // pre-declare locals
             auto & temps = collector.localTemps[nullptr];
@@ -2351,7 +2351,7 @@ namespace das {
                 elInfo.push_back(info);
             }
             string debug_info_name = "__tinfo_" + to_string(debugInfoGlobal++);
-            sti << "TypeInfo * " << debug_info_name << "[" << nArgs << "] = { ";
+            sti << "static TypeInfo * " << debug_info_name << "[" << nArgs << "] = { ";
             for ( size_t i=0, is=elInfo.size(); i!=is; ++i ) {
                 auto info = elInfo[i];
                 if ( i ) sti << ", ";
@@ -3773,7 +3773,7 @@ namespace das {
             ss << "\tresolveTypeInfoAnnotations();\n";
             ss << "};\n";
             ss << "\n";
-            ss << "AotListBase impl(registerAotFunctions);\n";
+            ss << "static AotListBase impl(registerAotFunctions);\n";
             ss << "} // namespace " << program->thisNamespace << "\n";
 
             ss << "namespace "      << contextNameSuffix << " {\n";
@@ -3896,7 +3896,6 @@ namespace das {
             // now, for that AOT
             program->setPrintFlags();
             program->visit(collector);
-
 
             program->library.foreach([&] (Module * mod) {
                 // if ( mod->isProperBuiltin() ) return true;

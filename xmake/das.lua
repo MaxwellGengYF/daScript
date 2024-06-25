@@ -1,5 +1,9 @@
 function get_outdir()
-    return "build/.das/"
+    local mode = get_config("mode")
+    if not mode then
+        mode = "default"
+    end
+    return format("build/.das/%s_%s_%s/", os.host(), os.arch(), mode)
 end
 
 function get_out_filepath(sourcefile)
