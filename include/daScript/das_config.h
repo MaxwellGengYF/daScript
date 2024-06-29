@@ -166,7 +166,6 @@ namespace das {
 #endif
 #include <ska/flat_hash_map.hpp>
 namespace das {
-
 template<typename T>
 struct das_hash {};
 static constexpr uint64_t hash64_default_seed = (1ull << 61ull) - 1ull;// (2^61 - 1) is a prime
@@ -403,6 +402,17 @@ template<typename T>
 inline string to_string(std::filesystem::path const& path) {
 	return path.string<char, std::char_traits<char>, eastl_allocator<char>>();
 }
+using fmt::format_to;
+
+template<typename Format, typename... Args>
+[[nodiscard]] inline auto das_format(Format &&f, Args &&...args) noexcept {
+    using char_type = typename das::string::value_type;
+    using memory_buffer = fmt::basic_memory_buffer<char_type, fmt::inline_buffer_size, eastl_allocator<char_type>>;
+    memory_buffer buffer;
+    das::format_to(std::back_inserter(buffer), std::forward<Format>(f), std::forward<Args>(args)...);
+    return das::string{buffer.data(), buffer.size()};
+}
+
 }// namespace das
 #else
 namespace das {

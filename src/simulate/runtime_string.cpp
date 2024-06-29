@@ -292,14 +292,14 @@ namespace das
     }
 
     string to_string_ex ( double dnum ) {
-        string stst = fmt::format("{:.17g}", dnum);
+        string stst = das::das_format("{:.17g}", dnum);
         if ( stst.find_first_of(".e")==string::npos )
             stst += ".";
         return stst;
     }
 
     string to_string_ex ( float dnum ) {
-        string stst = fmt::format("{:.9g}", dnum);
+        string stst = das::das_format("{:.9g}", dnum);
         if ( stst.find_first_of(".e")==string::npos )
             stst += ".";
         return stst;
