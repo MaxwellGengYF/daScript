@@ -2368,9 +2368,11 @@ namespace das {
     ExpressionPtr ExprLooksLikeCall::visit(Visitor & vis) {
         vis.preVisit(this);
         for ( auto & arg : arguments ) {
-            vis.preVisitLooksLikeCallArg(this, arg.get(), arg==arguments.back());
-            arg = arg->visit(vis);
-            arg = vis.visitLooksLikeCallArg(this, arg.get(), arg==arguments.back());
+            if ( vis.canVisitLooksLikeCallArg(this, arg.get(), arg==arguments.back()) ) {
+                vis.preVisitLooksLikeCallArg(this, arg.get(), arg==arguments.back());
+                arg = arg->visit(vis);
+                arg = vis.visitLooksLikeCallArg(this, arg.get(), arg==arguments.back());
+            }
         }
         return vis.visit(this);
     }
