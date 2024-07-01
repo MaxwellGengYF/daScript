@@ -88,6 +88,7 @@ if get_config('das_aot') then
 else
     target("my_test_object")
     set_kind("phony")
+    add_deps('daScript_modules')
     target_end()
 end
 
