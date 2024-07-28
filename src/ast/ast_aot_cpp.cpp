@@ -3489,7 +3489,7 @@ namespace das {
             // SimFunction * fn = context.getFunction(i);
             uint64_t semH = fnn[i]->aotHash;
             logs << "\t// " << aotFuncName(fnn[i]) << "\n";
-            logs << "\ttrySetAotLib(aotLib, uint64_t(0x" << HEX << semH << DEC << "), +[](Context & ctx)->SimNode*{\n\t\treturn ";
+            logs << "\ttrySetAotLib(aotLib, uint64_t(0x" << HEX << semH << DEC << "ull), +[](Context & ctx)->SimNode*{\n\t\treturn ";
             logs << "ctx.code->makeNode<SimNode_Aot";
             if ( fnn[i]->copyOnReturn || fnn[i]->moveOnReturn ) {
                 logs << "CMRES";
@@ -3501,7 +3501,7 @@ namespace das {
             uint64_t semH = context.getInitSemanticHash();
             semH = getInitSemanticHashWithDep(semH);
             logs << "\t// [[ init script ]]\n";
-            logs << "\ttrySetAotLib(aotLib, uint64_t(0x" << HEX << semH << DEC << "), +[](Context & ctx)->SimNode*{\n";
+            logs << "\ttrySetAotLib(aotLib, uint64_t(0x" << HEX << semH << DEC << "ull), +[](Context & ctx)->SimNode*{\n";
             logs << "\t\tctx.aotInitScript = ctx.code->makeNode<SimNode_Aot<void (*)(Context *, bool),&__init_script>>();\n";
             logs << "\t\treturn ctx.aotInitScript;\n";
             logs << "\t});\n";
