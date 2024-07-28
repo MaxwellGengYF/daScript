@@ -1129,16 +1129,18 @@ namespace das
     }
 
     Context::~Context() {
-        on_debug_agent_mutex([&](){
-            // unregister
-            category.value |= uint32_t(ContextCategory::dead);
-            // register
-            for_each_debug_agent([&](const DebugAgentPtr & pAgent){
-                pAgent->onDestroyContext(this);
+        if ( !failed ) {
+            on_debug_agent_mutex([&](){
+                // unregister
+                category.value |= uint32_t(ContextCategory::dead);
+                // register
+                for_each_debug_agent([&](const DebugAgentPtr & pAgent){
+                    pAgent->onDestroyContext(this);
+                });
             });
-        });
-        // shutdown
-        runShutdownScript();
+            // shutdown
+            runShutdownScript();
+        }
         // and free memory
         if ( globals && globalsOwner ) {
             das_aligned_free16(globals);
@@ -1418,7 +1420,7 @@ namespace das
         }
         virtual void onArgument ( FuncInfo * info, int i, VarInfo * field, vec4f arg ) override {
             ssw << "\t" << info->fields[i]->name
-                << " : " << debug_type(field)
+                << ": " << debug_type(field)
                 << " = \t" << debug_value(arg, field, PrintFlags::stackwalker) << "\n";
         }
         virtual void onBeforeVariables ( ) override {
@@ -1426,7 +1428,7 @@ namespace das
         }
         virtual void onVariable ( FuncInfo *, LocalVariableInfo * lv, void * addr, bool inScope ) override {
             ssw << "\t" << lv->name
-                << " : " << debug_type(lv);
+                << ": " << debug_type(lv);
             string location;
             if ( !inScope ) {
             } else if ( lv->cmres ) {
