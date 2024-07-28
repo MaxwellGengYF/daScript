@@ -128,6 +128,8 @@ using std::true_type;
 using std::tuple;
 using std::underlying_type;
 using std::unique_lock;
+using std::is_invocable_v;
+using std::enable_if_t;
 
 template<pdqsort_detail::LinearIterable Iter, pdqsort_detail::CompareFunc<Iter> Compare>
 inline void sort(Iter begin, Iter end, Compare comp) {
