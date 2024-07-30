@@ -1593,7 +1593,7 @@ namespace das {
 
     void ExprArrayComprehension::serialize ( AstSerializer & ser ) {
         Expression::serialize(ser);
-        ser << exprFor << exprWhere << subexpr << generatorSyntax;
+        ser << exprFor << exprWhere << subexpr << generatorSyntax << tableSyntax;
     }
 
     void ExprTypeDecl::serialize ( AstSerializer & ser ) {
@@ -2176,7 +2176,7 @@ namespace das {
     }
 
     uint32_t AstSerializer::getVersion () {
-        static constexpr uint32_t currentVersion = 34;
+        static constexpr uint32_t currentVersion = 35;
         return currentVersion;
     }
 

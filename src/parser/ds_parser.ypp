@@ -1356,6 +1356,11 @@ expr_new
         auto pNew = new ExprNew(tokAt(scanner,@loc),TypeDeclPtr($typeDecl),true);
         $$ = parseFunctionArguments(pNew,$arguments);
     }
+    |   DAS_NEWT[loc] new_type_declaration[typeDecl] '(' make_struct_dim[dd] ')'   {
+        ((ExprMakeStruct *)$dd)->makeType = $typeDecl;
+        ((ExprMakeStruct *)$dd)->useInitializer = true;
+        $$ = new ExprAscend(tokAt(scanner,@loc),ExpressionPtr($dd));
+    }
     |   DAS_NEWT[loc] make_decl[md] {
         $$ = new ExprAscend(tokAt(scanner,@loc),ExpressionPtr($md));
     }
@@ -1795,7 +1800,15 @@ expr
     |   SUBSUB[loc] expr[subexpr] %prec PRE_DEC  { $$ = new ExprOp1(tokAt(scanner,@loc),"--", ExpressionPtr($subexpr)); }
     |   expr[subexpr] ADDADD[loc] %prec POST_INC { $$ = new ExprOp1(tokAt(scanner,@loc),"+++", ExpressionPtr($subexpr)); }
     |   expr[subexpr] SUBSUB[loc] %prec POST_DEC { $$ = new ExprOp1(tokAt(scanner,@loc),"---", ExpressionPtr($subexpr)); }
-    |   '(' expr[subexpr] ')'                    { $$ = $subexpr; }
+    |   '(' expr_list[subexpr] ')' {
+            if ( $subexpr->rtti_isSequence() ) {
+                auto mkt = new ExprMakeTuple(tokAt(scanner,@subexpr));
+                mkt->values = sequenceToList($subexpr);
+                $$ = mkt;
+            } else {
+                $$ = $subexpr;
+            }
+        }
     |   expr[subexpr] '['[loc] expr[index] ']'   { $$ = new ExprAt(tokAt(scanner,@loc), ExpressionPtr($subexpr), ExpressionPtr($index)); }
     |   expr[subexpr] '.' '['[loc] expr[index] ']'   { $$ = new ExprAt(tokAt(scanner,@loc), ExpressionPtr($subexpr), ExpressionPtr($index), true); }
     |   expr[subexpr] QBRA[loc] expr[index] ']'  { $$ = new ExprSafeAt(tokAt(scanner,@loc), ExpressionPtr($subexpr), ExpressionPtr($index)); }
@@ -1806,7 +1819,14 @@ expr
     |   name_in_namespace[name] '(' ')'[atend] {
             $$ = yyextra->g_Program->makeCall(tokAt(scanner,@name),tokAt(scanner,@atend),*$name);
             delete $name;
-        }
+    }
+    |   name_in_namespace[name] '(' make_struct_dim[dd] ')' {
+            ((ExprMakeStruct *)$dd)->makeType = new TypeDecl(Type::alias);
+            ((ExprMakeStruct *)$dd)->makeType->alias = *$name;
+            ((ExprMakeStruct *)$dd)->useInitializer = true;
+            delete $name;
+            $$ = $dd;
+    }
     |   name_in_namespace[name] '(' expr_list[arguments] ')'[atend] {
             $$ = parseFunctionArguments(yyextra->g_Program->makeCall(tokAt(scanner,@name),tokAt(scanner,@atend),*$name),$arguments);
             delete $name;
@@ -3228,6 +3248,13 @@ make_tuple_call
         mkt->makeType = make_smart<TypeDecl>(Type::autoinfer);
         $$ = mkt;
     }
+    |   DAS_TTUPLE [loc] '<' { yyextra->das_force_oxford_comma=true; yyextra->das_arrow_depth ++; } type_declaration_no_options[mkt] '>' { yyextra->das_arrow_depth --; } '(' make_struct_dim[msd] ')'  {
+        $msd->at = tokAt(scanner,@loc);
+        ((ExprMakeStruct *)$msd)->makeType = TypeDeclPtr($mkt);
+        ((ExprMakeStruct *)$msd)->useInitializer = true;
+        ((ExprMakeStruct *)$msd)->forceTuple = true;
+        $$ = $msd;
+    }
     ;
 
 make_dim
@@ -3375,13 +3402,19 @@ optional_comma
 
 array_comprehension
     :   '[' DAS_FOR[loc] variable_name_with_pos_list[iters] DAS_IN expr_list[srcs]  ';' expr[subexpr] array_comprehension_where[where] ']' [forend] {
-        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),false);
+        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),false,false);
     }
     |   BRABRAB DAS_FOR[loc] variable_name_with_pos_list[iters] DAS_IN expr_list[srcs]  ';' expr[subexpr] array_comprehension_where[where] ']' ']' [forend] {
-        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),true);
+        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),true,false);
     }
     |   BRACBRB DAS_FOR[loc] variable_name_with_pos_list[iters] DAS_IN expr_list[srcs]  ';' expr[subexpr] array_comprehension_where[where] '}' ']' [forend] {
-        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),false);
+        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),false,false);
+    }
+    |   '{' DAS_FOR[loc] variable_name_with_pos_list[iters] DAS_IN expr_list[srcs]  ';' make_map_tuple[subexpr] array_comprehension_where[where] '}' [forend] {
+        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),false,false);
+    }
+    | CBRCBRB DAS_FOR[loc] variable_name_with_pos_list[iters] DAS_IN expr_list[srcs]  ';' make_map_tuple[subexpr] array_comprehension_where[where] '}' '}' [forend] {
+        $$ = ast_arrayComprehension(scanner,tokAt(scanner,@loc),$iters,$srcs,$subexpr,$where,tokRangeAt(scanner,@subexpr,@forend),true,false);
     }
     ;
 

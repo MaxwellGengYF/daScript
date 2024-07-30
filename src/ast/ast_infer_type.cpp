@@ -1388,6 +1388,17 @@ namespace das {
             for ( auto & fn : fnlist ) {
                 if ( fn->arguments.size()==0 ) {
                     return true;
+                } else {
+                    bool allDefault = true;
+                    for ( auto & arg : fn->arguments ) {
+                        if ( !arg->init ) {
+                            allDefault = false;
+                            break;
+                        }
+                    }
+                    if ( allDefault ) {
+                        return true;
+                    }
                 }
             }
             return false;
@@ -8153,19 +8164,22 @@ namespace das {
                 }
             }
         }
+        void convertCloneSemanticsToExpression ( ExprMakeStruct * expr, int index, MakeFieldDecl * decl ) {
+            if ( !expr->block ) expr->block = makeStructWhereBlock(expr);
+            DAS_ASSERT(expr->block->rtti_isMakeBlock());
+            auto mkb = static_pointer_cast<ExprMakeBlock>(expr->block);
+            DAS_ASSERT(mkb->block->rtti_isBlock());
+            auto blk = static_pointer_cast<ExprBlock>(mkb->block);
+            auto cle = convertToCloneExpr(expr,index,decl);
+            blk->list.insert(blk->list.begin(), cle); // TODO: fix order. we are making them backwards now
+            reportAstChanged();
+        }
         virtual MakeFieldDeclPtr visitMakeStructureField ( ExprMakeStruct * expr, int index, MakeFieldDecl * decl, bool last ) override {
             if ( !decl->value->type ) {
                 return Visitor::visitMakeStructureField(expr,index,decl,last);
             }
             if ( decl->cloneSemantics ) {
-                if ( !expr->block ) expr->block = makeStructWhereBlock(expr);
-                DAS_ASSERT(expr->block->rtti_isMakeBlock());
-                auto mkb = static_pointer_cast<ExprMakeBlock>(expr->block);
-                DAS_ASSERT(mkb->block->rtti_isBlock());
-                auto blk = static_pointer_cast<ExprBlock>(mkb->block);
-                auto cle = convertToCloneExpr(expr,index,decl);
-                blk->list.insert(blk->list.begin(), cle); // TODO: fix order. we are making them backwards now
-                reportAstChanged();
+                convertCloneSemanticsToExpression(expr,index,decl);
                 return nullptr;
             }
             if ( expr->makeType->baseType == Type::tStructure ) {
@@ -8203,11 +8217,15 @@ namespace das {
                         auto funs = findMatchingFunctions(opName, args);
                         auto gens = findMatchingGenerics(opName, args);
                         if ( funs.size()==1 || gens.size()==1 ) {
-                            TextWriter tw;
-                            extra
-                                << "since there is operator ."  << decl->name << " := ("
-                                    << expr->makeType->structType->name << "," << decl->value->type->describe() << ") , try "
-                                    <<  decl->name << " := " << *(decl->value);
+                            if ( strictProperties ) {
+                                extra
+                                    << "since there is operator ."  << decl->name << " := ("
+                                        << expr->makeType->structType->name << "," << decl->value->type->describe() << ") , try "
+                                        <<  decl->name << " := " << *(decl->value);
+                            } else {
+                                convertCloneSemanticsToExpression(expr,index,decl);
+                                return nullptr;
+                            }
                         }
                     }
                     error("field not found, " + decl->name, extra.str(), "",
@@ -8349,6 +8367,10 @@ namespace das {
                     return Visitor::visit(expr);
                 } else if ( expr->forceStruct ) {
                     error(expr->makeType->describe() + " is not a struct, but a variant", "", "",
+                        expr->at, CompilationError::invalid_type);
+                    return Visitor::visit(expr);
+                } else if ( expr->forceTuple ) {
+                    error(expr->makeType->describe() + " is not a tuple, but a variant", "", "",
                         expr->at, CompilationError::invalid_type);
                     return Visitor::visit(expr);
                 }
@@ -8564,6 +8586,10 @@ namespace das {
             }
             if ( expr->forceVariant && !(expr->makeType->baseType==Type::tVariant) ) {
                 error(expr->type->describe() + " is not a variant", "", "",
+                    expr->at, CompilationError::invalid_type);
+            }
+            if ( expr->forceTuple && !(expr->makeType->baseType==Type::tTuple) ) {
+                error(expr->type->describe() + " is not a tuple", "", "",
                     expr->at, CompilationError::invalid_type);
             }
             verifyType(expr->type);
@@ -8886,7 +8912,7 @@ namespace das {
                         expr->at, CompilationError::invalid_type);
                 } else {
                     auto pAC = expr->generatorSyntax ?
-                        generateComprehensionIterator(expr) : generateComprehension(expr);
+                        generateComprehensionIterator(expr) : generateComprehension(expr, expr->tableSyntax);
                     reportAstChanged();
                     return pAC;
                 }
