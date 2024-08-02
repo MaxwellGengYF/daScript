@@ -96,7 +96,6 @@ namespace das {
         bool                    strictProperties = false;
     public:
         vector<FunctionPtr>     extraFunctions;
-        das_hash_map<Function *,uint64_t> refreshFunctions;
     protected:
         string generateNewLambdaName(const LineInfo & at) {
             string mod = ctx.thisProgram->thisModule->name;
@@ -2070,12 +2069,6 @@ namespace das {
                         + describeType(arg->type) + " = " + describeType(arg->init->type), "", "",
                         arg->at, CompilationError::cant_infer_generic );
                 } else {
-                    auto it = refreshFunctions.find(f);
-                    if ( it == refreshFunctions.end() ) {
-                        // function signature changed, need to refresh
-                        // and we remember old hash to avoid multiple refreshes
-                        refreshFunctions.insert({f, f->getMangledNameHash()});
-                    }
                     TypeDecl::applyAutoContracts(varT, arg->type);
                     arg->type = varT;
                     arg->type->ref = false; // so that def ( a = VAR ) infers as def ( a : var_type ), not as def ( a : var_type & )
@@ -7891,8 +7884,8 @@ namespace das {
                         } else if ( aliasT->isStructure() ) {
                             if ( expr->arguments.size()==0 ) {
                                 expr->name = aliasT->structType->name;
-                                tryMakeStructureCtor (aliasT->structType, true);
-
+                                bool isPrivate = aliasT->structType->privateStructure || aliasT->structType->module != program->thisModule.get();
+                                tryMakeStructureCtor (aliasT->structType, isPrivate);
                             } else {
 
                                 error("can only generate default structure constructor without arguments",
@@ -8999,9 +8992,16 @@ namespace das {
             for ( auto efn : context.extraFunctions ) {
                 addFunction(efn);
             }
-            for ( auto rfn : context.refreshFunctions ) {
-                if ( !thisModule->functions.refresh_key(rfn.second, rfn.first->getMangledNameHash()) ) {
-                    error("internal compiler error: failed to refresh '" + rfn.first->getMangledName() + "'", "", "", rfn.first->at);
+            vector<tuple<Function *,uint64_t,uint64_t>> refreshFunctions;
+            thisModule->functions.foreach_with_hash([&](auto fn, uint64_t hash) {
+                auto mnh = fn->getMangledNameHash();
+                if ( hash != mnh ) {
+                    refreshFunctions.emplace_back(make_tuple(fn.get(), hash, mnh));
+                }
+            });
+            for ( auto rfn : refreshFunctions ) {
+                if ( !thisModule->functions.refresh_key(get<1>(rfn), get<2>(rfn)) ) {
+                    error("internal compiler error: failed to refresh '" + get<0>(rfn)->getMangledName() + "'", "", "", get<0>(rfn)->at);
                     goto failedIt;
                 }
             }
