@@ -1678,7 +1678,23 @@ namespace das
         uint64_t        dataWalkerStringLimit = 0;
         static DAS_THREAD_LOCAL daScriptEnvironment * bound;
         static DAS_THREAD_LOCAL daScriptEnvironment * owned;
+        static DAS_THREAD_LOCAL bool loaded;
         static void ensure();
+        static void _load_module(
+            void(*func_ptr)(void*),
+            void* usr_data
+        );
+        template <typename Func>
+        requires std::is_invocable_v<Func>
+        static void load_module(Func&& func) {
+            _load_module(
+                +[](void* ptr) {
+                    
+                    (*static_cast<std::add_pointer_t<std::remove_reference_t<Func>>>(ptr))();
+                },
+                &func
+            );
+        }
     };
 }
 
